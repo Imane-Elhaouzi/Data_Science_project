@@ -1,8 +1,8 @@
 
 
 ```{r}
-install.packages("tidyquant")
-setwd("C:/Users/acer/Desktop/stock analysis imane")
+#install.packages("tidyquant")
+setwd("C:/Users/acer/Desktop/Data_Science_project")
 library(xml2)
 library(rvest)
 library(xml2)
@@ -12,7 +12,7 @@ library(dplyr)
 library(readr)
 library(tidyr)
 library(tidyquant)
-setwd("C:/Users/acer/Desktop/stock analysis imane")
+setwd("C:/Users/acer/Desktop/Data_Science_project")
 ```
 
 
