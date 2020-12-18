@@ -1,7 +1,7 @@
 
 
 ```{r}
-#install.packages("tidyquant")
+install.packages("tidyquant")
 setwd("C:/Users/acer/Desktop/Data_Science_project")
 library(xml2)
 library(rvest)
