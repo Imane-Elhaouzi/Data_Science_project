@@ -217,7 +217,7 @@ ggplot(Volume, mapping =aes(Date)) + geom_histogram(bins =30,color = "darkblue")
 ```
 
 ```{r}
-imane<-charting_data %>% mutate(Rm_200=rollmean(Adj_Close,24,na.pad=TRUE, align="right")) %>%
+ moyenne<-charting_data %>% mutate(Rm_200=rollmean(Adj_Close,24,na.pad=TRUE, align="right")) %>%
   mutate(Rm_100=rollmean(Adj_Close,100,na.pad=TRUE, align="right")) %>% 
   mutate(Rm_50=rollmean(Adj_Close,50,na.pad=TRUE, align="right")) %>% 
   ggplot(aes(x=Date))+
@@ -233,7 +233,7 @@ imane<-charting_data %>% mutate(Rm_200=rollmean(Adj_Close,24,na.pad=TRUE, align=
     caption = "Source: Yahoo! Finance"
   ) +
   scale_y_continuous(labels = scales::dollar)
-  imane
+   moyenne
 ```
 ```{r}
  moving_average<-charting_data%>% 
