@@ -242,7 +242,24 @@ ggplot(Volume, mapping =aes(Date)) + geom_histogram(bins =30,color = "darkblue")
   mutate(Rm_50=rollmean(Adj_Close,50,na.pad=TRUE, align="right"))
 moving_average
 ```
-
+```{r}
+moyenne_SP<-sp500_price %>% mutate(Rm_200=rollmean(Adj.Close,24,na.pad=TRUE, align="right")) %>%
+  mutate(Rm_100=rollmean(Adj.Close,100,na.pad=TRUE, align="right")) %>% 
+  mutate(Rm_50=rollmean(Adj.Close,50,na.pad=TRUE, align="right")) %>% 
+  ggplot(aes(x=Date))+
+  geom_line(aes(y=Adj.Close))+scale_y_log10()+
+  geom_line(aes(y=Rm_200, color="MA_200")) + 
+  geom_line(aes(y=Rm_100, color="MA_100")) +
+  geom_line(aes(y=Rm_50, color="MA_50")) +
+  xlab("Date") + 
+  ylab("Adj.Close") +
+  labs(
+    title = ("Moyenne Mobile pour SP&500"),
+    caption = "Source: Yahoo! Finance"
+  ) +
+  scale_y_continuous(labels = scales::dollar)
+  moyenne_SP
+```
 
 ```{r}
 #à verifier 
