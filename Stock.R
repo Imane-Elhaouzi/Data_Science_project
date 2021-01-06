@@ -248,7 +248,7 @@ ticker_dataSelect
 ticker_data_series<-xts(ticker_dataSelect[,-1],order.by =as.Date(ticker_dataSelect$Date))
 str(ticker_data_series)
 ticker_data_series%>%Ad()%>%chartSeries()
-ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
+ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addRSI();addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
 
 ```
 # choisir l'action désiré
