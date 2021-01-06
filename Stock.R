@@ -1,4 +1,6 @@
 
+
+
 ```{r}
 setwd("C:/Users/acer/Desktop/Data_Science_project")
 library(xml2)
@@ -49,7 +51,7 @@ sp500_price <-sp500_price %>% mutate(
 )
 names(sp500_price) <- c("Date","Adjusted","Volume","Close","Open","High","Low","Mouvement")
 sp500_price
-View(sp500_price)
+
 ```
 #jointure de returns avec sp500_price
 ```{r}
@@ -93,7 +95,7 @@ save(returns, file = "returns.RData")
 
 returns_long <- as.data.frame(matrix(NA, ncol = 8, nrow = 0))
 returns_long <- returns %>%left_join(sp500 %>% select("Ticker", "Name", "Sector", "Industry"), by = c("Ticker" = "Ticker"))
-returns_long_by_ticker <- returns_long %>% filter(Ticker == ticker) %>% arrange(desc(Date))
+View(returns_long)
 ```
 ## Performance calcs
 ```{r}
@@ -101,29 +103,30 @@ performance_summary <- as.data.frame(matrix(NA, ncol = 7, nrow = 0))
 names(performance_summary) <- c("Ticker", "Thirty_days", "Ninety_days", "One_year", "Three_years", "Five_years", "Ten_years")
 
 i <- 1
-for(ticker in unique(returns_long$Ticker)){
-  #print(ticker)
-  returns_long_by_ticker <- returns_long %>% filter(Ticker == ticker) %>% arrange(desc(Date))
-  
-  
+for(Tickers in unique(returns_long$Ticker)){
+  #print(Tickers)
+  returns_long_by_ticker<- returns_long %>% filter(Ticker == Tickers) %>% arrange(desc(Date))
+  View(returns_long_by_ticker)
   thrity_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[21])/returns_long_by_ticker$Adjusted[21]
+  
   ninety_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[63])/returns_long_by_ticker$Adjusted[63]
   one_year <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[253])/returns_long_by_ticker$Adjusted[253]
   three_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[759])/returns_long_by_ticker$Adjusted[759]))^(1/3)-1
   five_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[1265])/returns_long_by_ticker$Adjusted[1265]))^(1/5)-1
   ten_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[2518])/returns_long_by_ticker$Adjusted[2518]))^(1/10)-1
   
-  performance_summary[i, 1] <- ticker
+  performance_summary[i, 1] <- Tickers
   performance_summary[i, 2] <- thrity_day
   performance_summary[i, 3] <- ninety_day
   performance_summary[i, 4] <- one_year
   performance_summary[i, 5] <- three_year
   performance_summary[i, 6] <- five_year
+  
   performance_summary[i, 7] <- ten_year
   
   i <- i + 1
 }
-performance_summary
+View(performance_summary)
 ```
 
 
@@ -133,13 +136,48 @@ load("sp500.RData")
 performance_summary <- performance_summary %>% left_join(sp500, by = c("Ticker" = "Ticker"))
 save(performance_summary, file = "performance_summary.RData")
 save(returns_long,file="returns_long.RData")
+View(performance_summary)
 
 
 
 ```
-#visualisation de SP&500
+## Industry Chart
 ```{r}
+```
 
+
+```{r}
+sector <- sp500 %>% filter(Ticker == Tickers) %>% select(Sector) %>% as.character()
+industry <- sp500 %>% filter(Ticker == Tickers) %>% select(Industry) %>% as.character()
+print(industry)
+
+industry_summary_data <- performance_summary %>% 
+  filter(Sector == sector) %>% 
+  mutate(
+    isIndustry = ifelse(Industry=="Industrials","Industry", "Non_Industry"))
+View(industry_summary_data)
+
+industry_chart <- ggplot(industry_summary_data) +
+  geom_bar(aes(x = Industry, y = One_year, fill=isIndustry), stat = "summary", fun = "mean") +
+  scale_fill_manual(values = c(Industry = "#ffff00", Non_Industry = "#0066ff")) +
+  ylab("One Year Return") +
+  labs(
+    title = "Industry Returns",
+    caption = "Source: Yahoo! Finance"
+  ) +
+  scale_y_continuous(labels = scales::percent) 
+
+
+industry_chart
+print(Industry)
+
+```
+
+
+#visualisation de SP&500
+
+
+```{r}
 sp<-sp500_price %>% ggplot(mapping=aes(x =Date,y=Adjusted) )+
   geom_line(color="red")+
   scale_fill_manual(values = c(Up = "#0066ff", Down = "#ffff00")) +
@@ -190,7 +228,7 @@ daily_returns_sp <- sp500_price %>%
                col_rename = "Daily_returns_sp") # renames the column
 daily_returns_sp %>%
   ggplot(aes(x =Date,y =Daily_returns_sp)) +
-  geom_line(color="purple")+
+  geom_line(color="pink")+
   theme_classic() +
   xlab("Date") + 
   ylab("daily_returns of SP&500") +
@@ -215,7 +253,7 @@ ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addS
 ```
 # choisir l'action désiré
 ```{r}
-ticker <- "MMM"
+ticker <- "AMZN"
 ```
 #filtrer le dataframe
 ```{r}
@@ -283,40 +321,10 @@ ticker_data_series%>%Ad()%>%dailyReturn(type='log')
 ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
 
 ```
-
-```{r}
-## Performance calcs
-
-performance_summary <- as.data.frame(matrix(NA, ncol = 7, nrow = 0))
-names(performance_summary) <- c("Ticker", "Thirty_days", "Ninety_days", "One_year", "Three_years", "Five_years", "Ten_years")
-
-i <- 1
-for(ticker in unique(returns_long$Ticker)){
-  returns_long_by_ticker <- returns_long %>% filter(Ticker == ticker) %>% arrange(desc(Date))
-  
-  
-  thrity_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[21])/returns_long_by_ticker$Adjusted[21]
-  ninety_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[63])/returns_long_by_ticker$Adjusted[63]
-  one_year <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[253])/returns_long_by_ticker$Adjusted[253]
-  three_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[759])/returns_long_by_ticker$Adjusted[759]))^(1/3)-1
-  five_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[1265])/returns_long_by_ticker$Adjusted[1265]))^(1/5)-1
-  ten_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[2518])/returns_long_by_ticker$Adjusted[2518]))^(1/10)-1
-  
-  performance_summary[i, 1] <- ticker
-  performance_summary[i, 2] <- thrity_day
-  performance_summary[i, 3] <- ninety_day
-  performance_summary[i, 4] <- one_year
-  performance_summary[i, 5] <- three_year
-  performance_summary[i, 6] <- five_year
-  performance_summary[i, 7] <- ten_year
-  
-  i <- i + 1
-}
-performance_summary
-```
-
 ## Performance Charting
 ```{r}
+
+
 performance_summary_data <- performance_summary %>% 
   filter(Ticker == ticker) %>% 
   select(Thirty_days, Ninety_days, One_year, Three_years, Five_years, Ten_years)
@@ -337,46 +345,51 @@ performance_summary_data <- performance_summary_data %>% mutate(
 performance_summary_data$Period <- factor(performance_summary_data$Period, levels = c("1 Month", "1 Quarter", "1 Year", "3 Years", "5 Years", "10 Years"))
 
 performance_chart <- ggplot(performance_summary_data) +
-  geom_bar(aes(x = Period, y = Return), stat = "identity", fill = "#0066ff") +
+  geom_bar(aes(x = Period, y = Return), stat = "identity", fill = "purple") +
   ylab("Annualized Return") +
   labs(
-    title = paste0(charting_data$Name[1], " (", ticker, ")"),
+    title =  paste0(charting_data$Name[1], " (", ticker, ")"),
+    subtitle = "returns",
     caption = "Source: Yahoo! Finance"
   ) +
   scale_y_continuous(labels = scales::percent) 
-
-
+performance_summary_data
 performance_chart
 ```
+
 #group by industry
 
 ```{r}
-x<-"Energy"
+x<-"Communication Services"
 ```
 #filtrer
 ```{r}
 data_segmentation2<-returns_long %>% filter(Industry == x)
+
 ```
 
 ```{r}
 data_segmentation <- data_segmentation2 %>% arrange(desc(Date))
 ```
 
+
 ```{r}
 performance_summary2 <- as.data.frame(matrix(NA, ncol = 7, nrow = 0))
 names(performance_summary2) <- c("Industry", "Thirty_days", "Ninety_days", "One_year", "Three_years", "Five_years", "Ten_years")
 i <- 1
-for(Industry in unique(returns_long$Industry)){
-  returns_long_by_Industry<- returns_long %>% filter(Industry==x) %>% arrange(desc(Date))
+for(Industries in unique(returns_long$Industry)){
+  #print(Industry)
+  returns_long_by_Industry<- returns_long %>% filter(Industry==Industries) %>% arrange(desc(Date))
   
-  thrity_day <- (data_segmentation$Adjusted[1] - data_segmentation$Adjusted[21])/data_segmentation$Adjusted[21]
-  ninety_day <- (data_segmentation$Adjusted[1] - data_segmentation$Adjusted[63])/data_segmentation$Adjusted[63]
-  one_year <- (data_segmentation$Adjusted[1] - data_segmentation$Adjusted[253])/data_segmentation$Adjusted[253]
-  three_year <- (1 + ((data_segmentation$Adjusted[1] - data_segmentation$Adjusted[759])/data_segmentation$Adjusted[759]))^(1/3)-1
-  five_year <- (1 + ((data_segmentation$Adjusted[1] - data_segmentation$Adjusted[1265])/data_segmentation$Adjusted[1265]))^(1/5)-1
-  ten_year <- (1 + ((data_segmentation$Adjusted[1] - data_segmentation$Adjusted[2518])/data_segmentation$Adjusted[2518]))^(1/10)-1
+  thrity_day <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[21])/returns_long_by_Industry$Adjusted[21]
+  ninety_day <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[63])/returns_long_by_Industry$Adjusted[63]
+  one_year <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[253])/returns_long_by_Industry$Adjusted[253]
+  three_year <- (1 + ((returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[759])/returns_long_by_Industry$Adjusted[759]))^(1/3)-1
+  five_year <- (1 + ((returns_long_by_Industry$Adjusted[1]-returns_long_by_Industry$Adjusted[1265])/returns_long_by_Industry$Adjusted[1265]))^(1/5)-1
+  ten_year <- (1 + ((returns_long_by_Industry$Adjusted[1]-returns_long_by_Industry$Adjusted[2518])/returns_long_by_Industry$Adjusted[2518]))^(1/10)-1
   
-  performance_summary2[i, 1] <- Industry
+  
+  performance_summary2[i, 1] <- Industries
   performance_summary2[i, 2] <- thrity_day
   performance_summary2[i, 3] <- ninety_day
   performance_summary2[i, 4] <- one_year
@@ -386,14 +399,15 @@ for(Industry in unique(returns_long$Industry)){
   
   i <- i + 1
 }
+returns_long_by_Industry
 performance_summary2
 ```
-
+#performance_chart of l'industry 
 ```{r}
 
 
 performance_summary_data2 <- performance_summary2 %>% 
-  filter(Industry==Industry) %>% 
+  filter(Industry==x) %>% 
   select(Thirty_days, Ninety_days, One_year, Three_years, Five_years, Ten_years)
 
 performance_summary_data2 <- performance_summary_data2 %>% gather("Period", "Return")
@@ -423,7 +437,7 @@ performance_chart2 <- ggplot(performance_summary_data2) +
 
 performance_chart2
 ```
-
+#rendement_journalier
 ```{r}
 rendement_journalier <- data_segmentation %>%
   tq_transmute(select = Adjusted,           # this specifies which column to select   
@@ -432,183 +446,15 @@ rendement_journalier <- data_segmentation %>%
                col_rename = "rendement_journalier") # renames the column
 rendement_journalier %>%
   ggplot(aes(x =Date,y =rendement_journalier)) +
-  geom_line(color="purple")+
+  geom_line(color="green")+
   theme_classic() +
   xlab("Date") + 
   ylab("rendement_journalier") +
   labs(
-    title =paste0(data_segmentation$Industry[1], " (",x,")"),
+    title =paste0(data_segmentation2$Industry[1], " (", x, ")"),
     
     subtitle = charting_data$Sector[1],
     caption = "Source: Yahoo! Finance"
   )
 ```
 
-## Industry Chart
-
-```{r}
-print(Industry)
-sector <- returns_long %>% filter(Ticker == Ticker) %>% select(Sector) %>% as.character()
-industry <- returns_long %>% filter(Ticker == Ticker) %>% select(Industry) %>% as.character()
-industry_summary_data <- returns_long %>% 
-  filter(Sector==sector) %>% 
-  mutate(
-    isIndustry = ifelse(Industry==Industry, "Industry", "Non_Industry")
-  )
-
-sector
-industry
-
-```
-
-
-```{r}
-industry_chart <- ggplot(industry_summary_data) +
-  geom_bar(aes(x = Industry, y =Date, fill = isIndustry), stat = "summary", fun = "mean") +
-  scale_fill_manual(values = c(Industry = "#ffff00", Non_Industry = "#0066ff")) +
-  ylab("One Year Return") +
-  labs(
-    title = "Industry Returns",
-    caption = "Source: Yahoo! Finance"
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme(
-    plot.background = element_rect(fill = "#17202A"),
-    panel.background = element_rect(fill = "#17202A"),
-    axis.text.x = element_text(color = "#ffffff", angle = 45, hjust = 1, vjust = 1),
-    axis.text.y = element_text(color = "#ffffff"),
-    axis.title.y = element_text(color = "#ffffff"),
-    axis.title.x = element_text(color = "#ffffff"),
-    plot.title = element_text(color = "#ffffff"),
-    plot.subtitle = element_text(color = "#ffffff"),
-    plot.caption = element_text(color = "#ffffff", face = "italic", size = 6),
-    panel.grid.major.x = element_blank(),
-    panel.grid.major.y = element_line(color = "#273746"),
-    panel.grid.minor.x = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    legend.position = "none",
-  )
-
-
-industry_chart
-```
-xlab("Date") + 
-  ylab("Adj_Close") +
-  labs(
-    title = paste0(charting_data$Name[1], " (", ticker, ")"),
-    subtitle = charting_data$Sector[1],
-    caption = "Source: Yahoo! Finance"
-  ) +
-  scale_y_continuous(labels = scales::dollar)
-
-```{r}
-moyenne<-charting_data %>% mutate(Rm_200=rollmean(Adjusted,24,na.pad=TRUE, align="right")) %>%
-  mutate(Rm_100=rollmean(Adjusted,100,na.pad=TRUE, align="right")) %>% 
-  mutate(Rm_50=rollmean(Adjusted,50,na.pad=TRUE, align="right")) %>% 
-  ggplot(aes(x=Date))+
-  geom_line(aes(y=Adjusted))+scale_y_log10()+
-  geom_line(aes(y=Rm_200, color="MA_200")) + 
-  geom_line(aes(y=Rm_100, color="MA_100")) +
-  geom_line(aes(y=Rm_50, color="MA_50")) 
-
-moyenne
-```
-```{r}
-moving_average<-charting_data%>% 
-  mutate(Rm_200=rollmean(Adjusted,200,na.pad=TRUE, align="right")) %>%
-  mutate(Rm_100=rollmean(Adjusted,100,na.pad=TRUE, align="right")) %>% 
-  mutate(Rm_50=rollmean(Adjusted,50,na.pad=TRUE, align="right"))
-moving_average
-```
-Moving average pour SP&500
-```{r}
-
-
-moyenne_SP<-sp500_price %>% 
-  mutate(Rm_200=rollmean(Adjusted,24,na.pad=TRUE, align="right")) %>%
-  mutate(Rm_100=rollmean(Adjusted,100,na.pad=TRUE, align="right")) %>% 
-  mutate(Rm_50=rollmean(Adjusted,50,na.pad=TRUE, align="right")) 
-moyenne_SP
-ggplot(aes(x=Date))+
-  geom_line(aes(y=Adjusted))+scale_y_log10()+
-  geom_line(aes(y=Rm_200, color="MA_200")) + 
-  geom_line(aes(y=Rm_100, color="MA_100")) +
-  geom_line(aes(y=Rm_50, color="MA_50")) +
-  xlab("Date") + 
-  ylab("Adjusted") +
-  labs(
-    title = ("Moyenne Mobile pour SP&500"),
-    caption = "Source: Yahoo! Finance"
-  ) +
-  scale_y_continuous(labels = scales::dollar)
-
-moyenne_SP
-```
-
-
-```{r}
-
-
-```
-
-```{r}
-daily_returns <- charting_data %>%
-  tq_transmute(select = Adjusted,           # this specifies which column to select   
-               mutate_fun = periodReturn,   # This specifies what to do with that column
-               period = "daily",      # This argument calculates Daily returns
-               col_rename = "Daily_returns") # renames the column
-daily_returns
-
-```
-
-
-
-```
-
-Visualisation of daily return of stock  
-```{r}
-daily_returns %>%
-  ggplot(aes(x =Date,y =Daily_returns)) +
-  geom_line() +
-  theme_classic() +
-  xlab("Date") + 
-  ylab("daily_returns") +
-  labs(
-    title = paste0(charting_data$Name[1], " (", ticker, ")"),
-    subtitle = charting_data$Sector[1],
-    caption = "Source: Yahoo! Finance"
-  )
-```
-
-Visualisation of daily return of SP&500
-```{r}
-
-daily_returns_sp <- sp500_price %>%
-  tq_transmute(select = Adjusted,           # this specifies which column to select   
-               mutate_fun = periodReturn,   # This specifies what to do with that column
-               period = "daily",      # This argument calculates Daily returns
-               col_rename = "Daily_returns_sp") # renames the column
-daily_returns_sp %>%
-  ggplot(aes(x =Date,y =Daily_returns_sp)) +
-  geom_line() +
-  theme_classic() +
-  xlab("Date") + 
-  ylab("daily_returns of SP&500") +
-  labs(
-    title = "SP_500 returns ",
-    
-    subtitle = charting_data$Sector[1],
-    caption = "Source: Yahoo! Finance"
-  )
-```
-
-
-
-
-
-
-
-
-
-
- 
