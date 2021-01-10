@@ -485,7 +485,7 @@ M <- momentum(Cl(charting_data), n=2)
 head (M,n=1000000)
 
 ```
-#ROC
+#ROC(Rate of Change)
 ```{r}
 ROC <- ROC(Cl(charting_data),n=2)
 # 2-day ROC
