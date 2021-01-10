@@ -1,6 +1,5 @@
 
 
-
 ```{r}
 setwd("C:/Users/acer/Desktop/Data_Science_project")
 library(xml2)
@@ -47,9 +46,9 @@ sp500_price<-read.csv("^GSPC.csv")
 sp500_price<-sp500_price %>% 
   mutate(Date=as.Date(Date))
 sp500_price <-sp500_price %>% mutate(
-  Movement = ifelse(Close > Open, "Up", "Down")
+  Movement = ifelse(Open< Close, "Up", "Down")
 )
-names(sp500_price) <- c("Date","Adjusted","Volume","Close","Open","High","Low","Mouvement")
+names(sp500_price) <- c("Date","Open","High","Low","Close","Adjusted","Volume","Movement")
 sp500_price
 
 ```
@@ -108,7 +107,7 @@ for(Tickers in unique(returns_long$Ticker)){
   returns_long_by_ticker<- returns_long %>% filter(Ticker == Tickers) %>% arrange(desc(Date))
   View(returns_long_by_ticker)
   thrity_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[21])/returns_long_by_ticker$Adjusted[21]
-  
+
   ninety_day <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[63])/returns_long_by_ticker$Adjusted[63]
   one_year <- (returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[253])/returns_long_by_ticker$Adjusted[253]
   three_year <- (1 + ((returns_long_by_ticker$Adjusted[1] - returns_long_by_ticker$Adjusted[759])/returns_long_by_ticker$Adjusted[759]))^(1/3)-1
@@ -143,10 +142,6 @@ View(performance_summary)
 ```
 ## Industry Chart
 ```{r}
-```
-
-
-```{r}
 sector <- sp500 %>% filter(Ticker == Tickers) %>% select(Sector) %>% as.character()
 industry <- sp500 %>% filter(Ticker == Tickers) %>% select(Industry) %>% as.character()
 print(industry)
@@ -154,7 +149,7 @@ print(industry)
 industry_summary_data <- performance_summary %>% 
   filter(Sector == sector) %>% 
   mutate(
-    isIndustry = ifelse(Industry=="Industrials","Industry", "Non_Industry"))
+   isIndustry = ifelse(Industry=="Industrials","Industry", "Non_Industry"))
 View(industry_summary_data)
 
 industry_chart <- ggplot(industry_summary_data) +
@@ -169,14 +164,10 @@ industry_chart <- ggplot(industry_summary_data) +
 
 
 industry_chart
-print(Industry)
+
 
 ```
-
-
 #visualisation de SP&500
-
-
 ```{r}
 sp<-sp500_price %>% ggplot(mapping=aes(x =Date,y=Adjusted) )+
   geom_line(color="red")+
@@ -193,7 +184,7 @@ sp
 #volume sp500
 ```{r}
 # volume 
-ggplot(sp500_price,aes(Date,Volume)) + 
+ggplot(sp500_price,aes(x=Date,y=Volume)) + 
   geom_line(color = "green") +theme(plot.title = element_text(hjust = 0.5)) +scale_y_log10()+
   xlab("Date") + 
   ylab("Volume") +
@@ -215,7 +206,7 @@ moyenne1<-sp500_price %>%
   geom_line(aes(y=Rm_200, color="MA_200")) + 
   geom_line(aes(y=Rm_100, color="MA_100")) +
   geom_line(aes(y=Rm_50, color="MA_50")) 
-
+ 
 moyenne1
 
 ```
@@ -248,7 +239,7 @@ ticker_dataSelect
 ticker_data_series<-xts(ticker_dataSelect[,-1],order.by =as.Date(ticker_dataSelect$Date))
 str(ticker_data_series)
 ticker_data_series%>%Ad()%>%chartSeries()
-ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addRSI();addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
+ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
 
 ```
 # choisir l'action désiré
@@ -305,7 +296,7 @@ moyenne<-charting_data %>% mutate(Rm_200=rollmean(Adjusted,24,na.pad=TRUE, align
   geom_line(aes(y=Rm_200, color="MA_200")) + 
   geom_line(aes(y=Rm_100, color="MA_100")) +
   geom_line(aes(y=Rm_50, color="MA_50")) 
-
+ 
 moyenne
 ```
 #visualization with time series 
@@ -317,8 +308,8 @@ ticker_data_series<-xts(ticker_dataSelect[,-1],order.by =as.Date(ticker_dataSele
 str(ticker_data_series)
 
 ticker_data_series%>%Ad()%>%chartSeries()
-ticker_data_series%>%Ad()%>%dailyReturn(type='log')
-ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=24,on=1,col="blue");addSMA(n=48,on=1,col="red");addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
+#ticker_data_series%>%Ad()%>%dailyReturn(type='log')
+ticker_data_series%>%chartSeries(TA='addBBands(n=20,sd=2);addVo();addMACD();addSMA(n=20,on=1,col="blue");addSMA(n=200,on=1,col ="red");addRSI();addSMA(n=50,on=1,col = "red");addSMA(n=48,on=1,col="green");addROC(n=7);addMomentum(n=1)',theme=chartTheme("white"),subset='2012')
 
 ```
 ## Performance Charting
@@ -356,11 +347,11 @@ performance_chart <- ggplot(performance_summary_data) +
 performance_summary_data
 performance_chart
 ```
-
+ 
 #group by industry
 
 ```{r}
-x<-"Communication Services"
+x<-"Energy"
 ```
 #filtrer
 ```{r}
@@ -384,9 +375,9 @@ for(Industries in unique(returns_long$Industry)){
   thrity_day <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[21])/returns_long_by_Industry$Adjusted[21]
   ninety_day <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[63])/returns_long_by_Industry$Adjusted[63]
   one_year <- (returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[253])/returns_long_by_Industry$Adjusted[253]
-  three_year <- (1 + ((returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[759])/returns_long_by_Industry$Adjusted[759]))^(1/3)-1
+   three_year <- (1 + ((returns_long_by_Industry$Adjusted[1] - returns_long_by_Industry$Adjusted[759])/returns_long_by_Industry$Adjusted[759]))^(1/3)-1
   five_year <- (1 + ((returns_long_by_Industry$Adjusted[1]-returns_long_by_Industry$Adjusted[1265])/returns_long_by_Industry$Adjusted[1265]))^(1/5)-1
-  ten_year <- (1 + ((returns_long_by_Industry$Adjusted[1]-returns_long_by_Industry$Adjusted[2518])/returns_long_by_Industry$Adjusted[2518]))^(1/10)-1
+ten_year <- (1 + ((returns_long_by_Industry$Adjusted[1]-returns_long_by_Industry$Adjusted[2518])/returns_long_by_Industry$Adjusted[2518]))^(1/10)-1
   
   
   performance_summary2[i, 1] <- Industries
@@ -457,4 +448,60 @@ rendement_journalier %>%
     caption = "Source: Yahoo! Finance"
   )
 ```
+# calcule des indicateurs techniqus :
+```{r}
+library(TTR)
 
+```
+#Simple Moving Average
+
+```{r}
+sma1 <-SMA(Cl(charting_data),n=20)
+sma2 <-SMA(Cl(charting_data),n=50)
+sma3 <-SMA(Cl(charting_data),n=200)
+View(sma1)
+View(sma2)
+View(sma3)
+```
+#Exponential moving average
+```{r}
+
+ema1 <-EMA(Cl(charting_data),n=20)
+ema2 <-EMA(Cl(charting_data),n=50)
+ema3 <-EMA(Cl(charting_data),n=200)
+View(ema1)
+View(ema2)
+View(ema3)
+
+```
+#bonds de Bollinger
+```{r}
+bb <-BBands(Cl(charting_data),s.d=2)
+View(bb)
+```
+#momentum
+```{r}
+M <- momentum(Cl(charting_data), n=2)
+head (M,n=1000000)
+
+```
+#ROC
+```{r}
+ROC <- ROC(Cl(charting_data),n=2)
+# 2-day ROC
+View(ROC)
+#head(ROC,n=100000)
+```
+#MACD
+```{r}
+macd <- MACD(Cl(charting_data), nFast=12, nSlow=26,
+             nSig=9, maType=SMA)
+#tail(macd,n=5)
+View(macd)
+```
+#RSI
+```{r}
+rsi = RSI(Cl(charting_data), n=14)
+#tail(rsi,n=5)
+View(rsi)
+```
