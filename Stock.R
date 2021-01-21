@@ -505,3 +505,4 @@ rsi = RSI(Cl(charting_data), n=14)
 #tail(rsi,n=5)
 View(rsi)
 ```
+hicham 
